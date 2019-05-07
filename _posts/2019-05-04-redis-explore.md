@@ -230,26 +230,26 @@ typedef struct dictType {
 ```
 字典的数据结构如下图：
 ![](/blog/img/redis-dictType.jpg)
-这里我们可以看到一个dict 拥有两个 dictht。一般来说只使用 ht[0],当扩容的时候发生了rehash的时候，ht[1]才会被使用。
+这里我们可以看到一个dict 拥有两个 dictht。一般来说只使用 ht[0],当扩容的时候发生了rehash的时候，ht[1]才会被使用。
 
 当我们观察或者研究一个hash结构的时候偶我们首先要考虑的这个 dict 如何插入一个数据？
 
 我们梳理一下插入数据的逻辑。
 
-- 计算Key 的 hash 值。找到 hash 映射到 table 数组的位置。
+- 计算Key 的 hash 值。找到 hash 映射到 table 数组的位置。
 
-- 如果数据已经有一个 key 存在了。那就意味着发生了 hash 碰撞。新加入的节点，就会作为链表的一个节点接到之前节点的 next 指针上。
+- 如果数据已经有一个 key 存在了。那就意味着发生了 hash 碰撞。新加入的节点，就会作为链表的一个节点接到之前节点的 next 指针上。
 
-- 如果 key 发生了多次碰撞，造成链表的长度越来越长。会使得字典的查询速度下降。为了维持正常的负载。Redis 会对 字典进行 rehash 操作。来增加 table 数组的长度。所以我们要着重了解一下 Redis 的 rehash。步骤如下：
+- 如果 key 发生了多次碰撞，造成链表的长度越来越长。会使得字典的查询速度下降。为了维持正常的负载。Redis 会对 字典进行 rehash 操作。来增加 table 数组的长度。所以我们要着重了解一下 Redis 的 rehash。步骤如下：
 
-  - 根据ht[0] 的数据和操作的类型（扩大或缩小），分配 ht[1] 的大小。
+  - 根据ht[0] 的数据和操作的类型（扩大或缩小），分配 ht[1] 的大小。
   - 将 ht[0] 的数据 rehash 到 ht[1] 上。
   - rehash 完成以后，将ht[1] 设置为 ht[0]，生成一个新的ht[1]备用。
 
 - 渐进式的 rehash 。
 其实如果字典的 key 数量很大，达到千万级以上，rehash 就会是一个相对较长的时间。所以为了字典能够在 rehash 的时候能够继续提供服务。Redis 提供了一个渐进式的 rehash 实现，rehash的步骤如下：
 
-  - 分配 ht[1] 的空间，让字典同时持有 ht[1] 和 ht[0]。
+  - 分配 ht[1] 的空间，让字典同时持有 ht[1] 和 ht[0]。
   - 在字典中维护一个 rehashidx，设置为 0 ，表示字典正在 rehash。
   - 在rehash期间，每次对字典的操作除了进行指定的操作以外，都会根据 ht[0] 在 rehashidx 上对应的键值对 rehash 到 ht[1]上。
   - 随着操作进行， ht[0] 的数据就会全部 rehash 到 ht[1] 。设置ht[0] 的 rehashidx 为 -1，渐进的 rehash 结束。这样保证数据能够平滑的进行 rehash。防止 rehash 时间过久阻塞线程。
@@ -315,7 +315,7 @@ typedef struct zskiplist {
 
 - 省内存。
 - 服务于 ZRANGE 或者 ZREVRANGE 是一个典型的链表场景。时间复杂度的表现和平衡树差不多。
-- 最重要的一点是跳跃表的实现很简单就能达到 O(logN)的级别。
+- 最重要的一点是跳跃表的实现很简单就能达到 O(logN)的级别。
 
 **整数集合**
 
@@ -364,11 +364,11 @@ typedef struct intset {
 zlbytes 表示的是整个压缩列表使用的内存字节数
 zltail 指定了压缩列表的尾节点的偏移量
 zllen 是压缩列表 entry 的数量
-entry 就是 ziplist 的节点
+entry 就是 ziplist 的节点
 zlend 标记压缩列表的末端
 
 这个列表中还有单个指针：
-ZIPLIST_ENTRY_HEAD 列表开始节点的头偏移量
+ZIPLIST_ENTRY_HEAD 列表开始节点的头偏移量
 ZIPLIST_ENTRY_TAIL 列表结束节点的头偏移量
 ZIPLIST_ENTRY_END 列表的尾节点结束的偏移量
 
@@ -402,12 +402,12 @@ typedef struct zlentry {
 依次解释一下这几个参数。
 
 prevrawlen 前置节点的长度，这里多了一个 size，其实是记录了 prevrawlen 的尺寸。Redis 为了节约内存并不是直接使用默认的 int 的长度，而是逐渐升级的。
-同理 len 记录的是当前节点的长度，lensize 记录的是 len 的长度。
-headersize 就是前文提到的两个 size 之和。
-encoding 就是这个节点的数据类型。这里注意一下 encoding 的类型只包括整数和字符串。
+同理 len 记录的是当前节点的长度，lensize 记录的是 len 的长度。
+headersize 就是前文提到的两个 size 之和。
+encoding 就是这个节点的数据类型。这里注意一下 encoding 的类型只包括整数和字符串。
 p 节点的指针，不用过多的解释。
 
-需要注意一点，因为每个节点都保存了前一个节点的长度，如果发生了更新或者删除节点，则这个节点之后的数据也需要修改，有一种最坏的情况就是如果每个节点都处于需要扩容的零界点，就会造成这个节点之后的节点都要修改 size 这个参数，引发连锁反应。这个时候就是 压缩链表最坏的时间复杂度 O(n^2)。不过所有节点都处于临界值，这样的概率可以说比较小。
+需要注意一点，因为每个节点都保存了前一个节点的长度，如果发生了更新或者删除节点，则这个节点之后的数据也需要修改，有一种最坏的情况就是如果每个节点都处于需要扩容的零界点，就会造成这个节点之后的节点都要修改 size 这个参数，引发连锁反应。这个时候就是 压缩链表最坏的时间复杂度 O(n^2)。不过所有节点都处于临界值，这样的概率可以说比较小。
 
 **总结**
 
@@ -543,7 +543,6 @@ static int  aeApiPoll(aeEventLoop *eventLoop, struct timeval *tvp)
 这样 Redis 的利用 epoll 实现的 I/O 复用器就比较清晰了。
 
 再往上一层次我们需要看看 ea.c 是怎么封装的？
-
 首先需要关注的是事件处理器的数据结构：
 ```c
 typedef struct aeFileEvent {
@@ -567,7 +566,6 @@ typedef struct aeFileEvent {
 mask 就是可以理解为事件的类型。
 
 除了使用 ae_peoll.c 提供的方法外,ae.c 还增加 “增删查” 的几个 API。
-
 - 增:aeCreateFileEvent
 - 删:aeDeleteFileEvent
 - 查: 查包括两个维度 aeGetFileEvents 获取某个 fd 的监听类型和aeWait等待某个fd 直到超时或者达到某个状态。
