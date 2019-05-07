@@ -8,8 +8,7 @@ tags:
   - redis
   - 多路复用
 ---
-
-> Redis 是一个事件驱动的内存数据库
+> **Redis 是一个事件驱动的内存数据库**
 
 ### Redis数据结构
 
@@ -79,6 +78,7 @@ typedef struct listNode {
     void *value;
 
 } listNode;
+```
 非常典型的双向链表的数据结构。
 
 同时为双向链表提供了如下操作的函数：
