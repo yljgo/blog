@@ -34,7 +34,7 @@ struct __attribute__ ((__packed__)) sdshdr64 {
 };
 ```
 
-![](/img/redis-sds.jpg)
+![](/blog/img/redis-sds.jpg)
 所以我们看到，sds 包含3个参数。buf 的长度 len，buf 的剩余长度，以及buf。
 
 为什么这么设计呢？
@@ -122,7 +122,7 @@ typedef struct list {
 } list;
 ```
 链表的结构比较简单，数据结构如下：
-![](/img/redis-list.jpg)
+![](/blog/img/redis-list.jpg)
 
 总结一下性质：
 
@@ -175,7 +175,7 @@ typedef struct dictht {
 
 } dictht;
 ```
-![](/img/redis-dictht.jpg)
+![](/blog/img/redis-dictht.jpg)
 
 实际上，如果对java 的基本数据结构了解的同学就会发现，这个数据结构和 java 中的 HashMap 是很类似的，就是数组加链表的结构。
 
@@ -229,7 +229,7 @@ typedef struct dictType {
 } dictType;
 ```
 字典的数据结构如下图：
-![](/img/redis-dictType.jpg)
+![](/blog/img/redis-dictType.jpg)
 这里我们可以看到一个dict 拥有两个 dictht。一般来说只使用 ht[0],当扩容的时候发生了rehash的时候，ht[1]才会被使用。
 
 当我们观察或者研究一个hash结构的时候偶我们首先要考虑的这个 dict 如何插入一个数据？
@@ -307,7 +307,7 @@ typedef struct zskiplist {
 } zskiplist;
 ```
 所以根据这个代码我们可以画出如下的结构图：
-![](/img/redis-zskiplist.jpg)
+![](/blog/img/redis-zskiplist.jpg)
 
 其实跳表就是一个利用空间换时间的数据结构，利用 level 作为链表的索引。
 
@@ -359,7 +359,7 @@ typedef struct intset {
 压缩链表 Redis 作者的介绍是，为了尽可能节约内存设计出来的双向链表。
 
 对于一个压缩列表代码里注释给出的数据结构如下：
-![](/img/reids-zl.jpg)
+![](/blog/img/reids-zl.jpg)
 
 zlbytes 表示的是整个压缩列表使用的内存字节数
 zltail 指定了压缩列表的尾节点的偏移量
@@ -456,7 +456,7 @@ Redis 服务器通过 socket 实现与客户端（或其他redis服务器）的�
 
 Redis 基于 Reactor 模式开发了自己的事件处理器。
 这里就先展开讲一讲 Reactor 模式。看下图：
-![](/img/Reactor.jpg)
+![](/blog/img/Reactor.jpg)
 
 “I/O 多路复用模块”会监听多个 FD ，当这些FD产生，accept，read，write 或 close 的文件事件。会向“文件事件分发器（dispatcher）”传送事件。
 
@@ -649,7 +649,7 @@ typedef struct aeTimeEvent {
 } aeTimeEvent;
 ```
 我们就知道这个 aeTimeEvent 是一个链表结构。看图：
-![](/img/aeTimeEvent.jpg)
+![](/blog/img/aeTimeEvent.jpg)
 注意这是一个按照id倒序排列的链表，并没有按照事件顺序排序。
 
 **processTimeEvent**
@@ -739,7 +739,7 @@ Redis以其极高的性能以及支持丰富的数据结构而著称，在互联
 > 这个方案采取了折中的方式，只有一个worker线程负责所有的对数据库的读写操作，
 这个就避免了很并行操作数据库的多线程安全问题。
 
-![阿里云Redis](/img/multi_thread.jpg)
+![阿里云Redis](/blog/img/multi_thread.jpg)
 
 1. 主线程监听端口，当有请求到来时从accepted队列从取出已经就绪的连接描述符，将之加入到某个reactor线程的事件循环中，并指定可读时触发事件，与回调函数
 2. 有多个reactor线程，里面都有各自的事件循环，从主线程绑定过来的连接描述符connfd可读时，会执行绑定的回调函数，在回调函数里读取数据，写入到c->querybuf中，并将连接对象添加到线程的无锁队列中，然后使用管道(socketpair)通知worker线程
@@ -771,7 +771,7 @@ Redis客户端与服务器之间使用TCP协议进行通信，并且很早就支
 
 **深入理解Redis交互流程**
 
-![Redis交互流程](/img/redis-flow.jpg)
+![Redis交互流程](/blog/img/redis-flow.jpg)
 
 管道并不只是用来网络开销延迟的一种方法，它实际上是会提升Redis服务器每秒操作总数的。在解释原因之前，需要更深入的了解Redis命令处理过程。
 
@@ -794,7 +794,7 @@ Redis客户端与服务器之间使用TCP协议进行通信，并且很早就支
 
 使用管道时，多个命令只会进行一次read()和wrtie()系统调用，因此使用管道会提升Redis服务器处理命令的速度，随着管道中命令的增多，服务器每秒处理请求的数量会线性增长，最后会趋近于不使用管道的10倍。
 
-![](/img/redis-press.jpg)
+![](/blog/img/redis-press.jpg)
 
 **总结**
 
@@ -834,7 +834,7 @@ typedef struct redisDb {
 ```
 总体来说redis的 server 包含若干个（默认16个） redisDb 数据库。
 
-![](/img/redisServer.jpg)
+![](/blog/img/redisServer.jpg)
 
 Redis 是一个 k-v 存储的键值对数据库。其中字典 dict 保存了数据库中的所有键值对，这个地方叫做 keyspace 直译过来就是“键空间”。
 
@@ -851,7 +851,7 @@ Redis 是一个 k-v 存储的键值对数据库。其中字典 dict 保存了数
 >redis SET mobile "13800000000"
 ```
 实际上就是为 keyspace 增加了一个 key 是包含字符串“mobile”的字符串对象，value 为包含字符“13800000000”的字符串对象。
-![](/img/redis-set.jpg)
+![](/blog/img/redis-set.jpg)
 对于删改查，没啥好说的。类似java 的 map 操作，大多数程序员应该都能理解。
 
 需要特别注意的是，再执行对键的读写操作的时候，Redis 还要做一些额外的维护动作：
@@ -883,7 +883,7 @@ Redis 作为缓存使用最主要的一个特性就是可以为键值对设置�
 >redis PEXPIREAT mobile 1521469812000
 ```
 这个时候就会在过期的 字典中增加一个键值对。如下图：
-![](/img/redis-expires.jpg)
+![](/blog/img/redis-expires.jpg)
 
 对于过期的判断逻辑就很简单：
 
