@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="info">
+	<Properties>
+        <Property name="logPath">./logs/ocs/</Property>
+    </Properties>
+	<Appenders>
+		<Console name="console" target="SYSTEM_OUT">
+			<!--输出日志的格式-->
+			<PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %-5p %c{1}(%F:%L) - %m%n" />
+		</Console>
+
+		<!--这个会打印出所有的信息，每次大小超过size，则这size大小的日志会自动存入按年份-月份建立的文件夹下面并进行压缩，作为存档-->
+		<RollingFile name="fileAppender" fileName="${logPath}ocs.log" filePattern="${logPath}ocs-proxy.log.%d{yyyy-MM-dd}.%i.log.gz">
+			<PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %-5p %c{1}(%L) - %m%n" />
+			<Policies>
+				<TimeBasedTriggeringPolicy />
+				<!-- 日志文件大小 -->
+				<SizeBasedTriggeringPolicy size="200 MB" />
+			</Policies>
+			<DefaultRolloverStrategy max="24" />
+		</RollingFile>
+		
+		<RollingFile name="errorLog" fileName="${logPath}error.log" filePattern="${logPath}error.log.%d{yyyy-MM-dd}.%i.log.gz">
+			<PatternLayout pattern="[%-5p][%d{yyyy-MM-dd HH:mm:ss.SSS}][%t][BSP][123][123][LOG_POINT]%m%n" />
+			<Policies>
+				<TimeBasedTriggeringPolicy />
+				<SizeBasedTriggeringPolicy size="200 MB" />
+			</Policies>
+			<DefaultRolloverStrategy max="24" />
+		</RollingFile>
+		
+		<RollingFile name="monitor" fileName="${logPath}/appmonitor.log" filePattern="${logPath}/appmonitor.%d{yyyy-MM-dd}.log.gz">
+			<PatternLayout pattern="[%-5p][%d{yyyy-MM-dd HH:mm:ss.SSS}][%t][BSP][123][123][LOG_POINT]%m%n" />
+			<Policies>
+				<TimeBasedTriggeringPolicy />
+				<SizeBasedTriggeringPolicy size="200 MB" />
+			</Policies>
+			<DefaultRolloverStrategy max="24" />
+		</RollingFile>
+
+	</Appenders>
+
+	<!--根据Logger和Root的定义写入相应的appender格式的日志-->
+	<Loggers>
+		<AsyncLogger name="appmonitor" level="info" additivity="false">
+			<AppenderRef ref="monitor" />
+		</AsyncLogger>
+		<AsyncLogger name="error" level="info" additivity="false">
+			<AppenderRef ref="errorLog" />
+		</AsyncLogger>
+		<AsyncRoot level="info" includeLocation="true">
+			<AppenderRef ref="console" />
+        </AsyncRoot>
+	</Loggers>
+</Configuration>
