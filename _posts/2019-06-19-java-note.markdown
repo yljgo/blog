@@ -1,0 +1,24 @@
+---
+layout: post
+title: Java获取泛型类型
+subtitle: 阴
+author: "Paul"
+header-style: text
+tags:
+  - Java
+---
+
+```java
+    /**
+     * 获取泛型类型
+     *
+     * @return entity class
+     */
+    protected Class<T> getEntityClass() {
+        Type type = getClass().getGenericSuperclass();
+        if (!(type instanceof ParameterizedType)) {
+            type = getClass().getSuperclass().getGenericSuperclass();
+        }
+        return (Class<T>) ((ParameterizedType) type).getActualTypeArguments()[0];
+    }
+```
